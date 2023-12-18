@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Your Location</title>
+    <script src="https://api-maps.yandex.ru/2.1/?apikey=f8a0ec95-64f5-4ddc-9045-db1de59e17c2&lang=en_US" type="text/javascript"></script>
+</head>
+<body>
+    <div id="map" style="height: 400px; width: 100%;"></div>
+    <button id="getLocationButton">Select Location</button>
+
+    <script>
+        ymaps.ready(init);
+
+        function init() {
+            var map = new ymaps.Map("map", {
+                center: [0, 0],
+                zoom: 2
+            });
+
+            var location;
+            var country;
+            var city;
+
+            map.events.add('click', function (e) {
+                location = e.get('coords');
+                map.geoObjects.removeAll();
+                map.geoObjects.add(new ymaps.Placemark(location));
+
+                // Reverse geocode to get country and city information
+                ymaps.geocode(location).then(function (res) {
+                    var firstGeoObject = res.geoObjects.get(0);
+                    country = firstGeoObject.getCountry();
+                    city = firstGeoObject.getLocalities().length ? firstGeoObject.getLocalities() : firstGeoObject.getAdministrativeAreas();
+
+                    // Now you can use 'country' and 'city' in your application
+                    console.log('Country:', country);
+                    console.log('City:', city);
+                });
+            });
+
+            document.getElementById('getLocationButton').addEventListener('click', function () {
+                if (location) {
+                    // Send the selected location with country and city to the Django backend
+                    sendDataToBackend(location, country, city);
+                } else {
+                    alert('Please select a location on the map.');
+                }
+            });
+
+            function sendDataToBackend(location, country, city) {
+                // Send AJAX request to the Django backend
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', 'http://127.0.0.1:8000/api/locations/', true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === 4 && xhr.status === 201) {
+                        alert('Location saved successfully!');
+                    } else if (xhr.readyState === 4 && xhr.status !== 201) {
+                        alert('Failed to save location. Please try again.');
+                    }
+                };
+
+                // Convert the location, country, and city to JSON and send it in the request body
+                var data = JSON.stringify({
+                    latitude: location[0],
+                    longitude: location[1],
+                    country: country,
+                    city: city[0],
+                    more: city[1]
+                });
+
+                xhr.send(data);
+            }
+        }
+    </script>
+</body>
+</html>
