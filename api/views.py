@@ -13,10 +13,12 @@ class LocationListCreateView(generics.ListCreateAPIView):
         city = request.data.get('city')
         country = request.data.get('country')
         more = request.data.get('more')
+        street = request.data.get('street')
+        zipcode = request.data.get('zipcode')
         latitude = request.data.get('latitude')
         longitude = request.data.get('longitude')
 
         # Create a new location entry
-        Location.objects.create(latitude=latitude, longitude=longitude,city=city,country=country,more=more)
+        Location.objects.create(latitude=latitude, longitude=longitude,city=city,country=country,more=more,street=street,zipcode=zipcode)
 
         return Response({'message': 'Location saved successfully!'}, status=status.HTTP_201_CREATED)

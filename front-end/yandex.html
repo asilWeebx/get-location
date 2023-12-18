@@ -8,20 +8,40 @@
 </head>
 <body>
     <div id="map" style="height: 400px; width: 100%;"></div>
+    <p id="selectedLocation"></p>
     <button id="getLocationButton">Select Location</button>
 
     <script>
         ymaps.ready(init);
 
         function init() {
+            // Set the center to approximate coordinates for Uzbekistan
             var map = new ymaps.Map("map", {
-                center: [0, 0],
-                zoom: 2
+                center: [41.3775, 64.5853],
+                zoom: 6
             });
 
             var location;
             var country;
             var city;
+            var street;
+            var zipcode;
+
+map.events.add('click', function (e) {
+                location = e.get('coords');
+                map.geoObjects.removeAll();
+                map.geoObjects.add(new ymaps.Placemark(location));
+
+                // Reverse geocode to get country and city information
+                ymaps.geocode(location).then(function (res) {
+                    var firstGeoObject = res.geoObjects.get(0);
+                    country = firstGeoObject.getCountry();
+                    city = firstGeoObject.getLocalities().length ? firstGeoObject.getLocalities() : firstGeoObject.getAdministrativeAreas();
+
+                    // Display the selected country and city
+                     displaySelectedLocation(country, city, street, zipcode);
+                });
+            });
 
             map.events.add('click', function (e) {
                 location = e.get('coords');
@@ -33,23 +53,37 @@
                     var firstGeoObject = res.geoObjects.get(0);
                     country = firstGeoObject.getCountry();
                     city = firstGeoObject.getLocalities().length ? firstGeoObject.getLocalities() : firstGeoObject.getAdministrativeAreas();
-
+                    street = firstGeoObject.getThoroughfare();
+                    zipcode = firstGeoObject.getPostalCode();
                     // Now you can use 'country' and 'city' in your application
                     console.log('Country:', country);
                     console.log('City:', city);
+                    console.log('Street:', street);
+                    console.log('ZipCode:', zipcode);
                 });
             });
 
             document.getElementById('getLocationButton').addEventListener('click', function () {
                 if (location) {
                     // Send the selected location with country and city to the Django backend
-                    sendDataToBackend(location, country, city);
+                    sendDataToBackend(location, country, city,street);
                 } else {
                     alert('Please select a location on the map.');
                 }
             });
+ function displaySelectedLocation(country, city, street, zipcode) {
+                var selectedLocationElement = document.getElementById('selectedLocation');
+                var locationText = 'Selected Location: ' + street + ', ' + city + ', ' + country;
 
-            function sendDataToBackend(location, country, city) {
+                // Check if ZIP code is available and add it to the displayed location
+                if (zipcode) {
+                    locationText += ', ' + zipcode;
+                }
+
+                selectedLocationElement.textContent = locationText;
+            }
+
+            function sendDataToBackend(location, country, city,street,zipcode) {
                 // Send AJAX request to the Django backend
                 var xhr = new XMLHttpRequest();
                 xhr.open('POST', 'http://127.0.0.1:8000/api/locations/', true);
@@ -68,11 +102,15 @@
                     longitude: location[1],
                     country: country,
                     city: city[0],
-                    more: city[1]
+                    street: street,
+                    zipcode: zipcode,
+                    more: city[1],
                 });
 
                 xhr.send(data);
+
             }
+
         }
     </script>
 </body>
