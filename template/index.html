@@ -10,7 +10,9 @@
     <div id="map" style="height: 400px; width: 100%;"></div>
     <p id="selectedLocation"></p>
     <button id="getLocationButton">Select Location</button>
-
+{% for i in location %}
+    <a href="{% url 'loc' i.id%}"><br>Country name: {{i.country}}, City and street: {{i.city}}|{{ i.street}}</a><br>
+    {% endfor %}
     <script>
         ymaps.ready(init);
 

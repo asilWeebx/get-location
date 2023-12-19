@@ -1,0 +1,56 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Your Location</title>
+    <script src="https://api-maps.yandex.ru/2.1/?apikey=f8a0ec95-64f5-4ddc-9045-db1de59e17c2&lang=en_US" type="text/javascript"></script>
+</head>
+<body>
+    <div id="map" style="height: 400px; width: 100%;"></div>
+    <p id="selectedLocation"></p>
+    <a href="{% url 'loc' location.id%}">{{location.latitude}}, {{location.longitude}}</a><br>
+    <script>
+    ymaps.ready(init);
+
+function init() {
+    var map = new ymaps.Map("map", {
+        center: [{{location.latitude }}, {{ location.longitude }}],
+        zoom: 6
+    });
+
+    var iconCoordinates = [
+        { latitude: {{location.latitude|slice:4}}, longitude: {{location.longitude|slice:4}} },
+
+        // ... yana koordinatalar
+    ];
+
+    var placemarks = [];
+
+    for (var i = 0; i < iconCoordinates.length; i++) {
+        var coordinates = [iconCoordinates[i].latitude, iconCoordinates[i].longitude];
+
+        var placemark = new ymaps.Placemark(
+            coordinates,
+            {},
+            {
+                iconLayout: 'default#image',
+                iconImageHref: "{% static 'images.png' %}", // O'zgarish mumkin, shunday qilib server tomonida belgilangan ikonga yo'naltirish
+                iconImageSize: [32, 32],
+                iconImageOffset: [-16, -16]
+            }
+        );
+
+        placemarks.push(placemark);
+        map.geoObjects.add(placemark);
+    }
+
+    map.setBounds(map.geoObjects.getBounds(), {
+        checkZoomRange: true
+    });
+}
+
+    </script>
+</body>
+</html>

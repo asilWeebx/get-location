@@ -1,3 +1,4 @@
+from django.shortcuts import render
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework import status
@@ -22,3 +23,24 @@ class LocationListCreateView(generics.ListCreateAPIView):
         Location.objects.create(latitude=latitude, longitude=longitude,city=city,country=country,more=more,street=street,zipcode=zipcode)
 
         return Response({'message': 'Location saved successfully!'}, status=status.HTTP_201_CREATED)
+
+
+def index(request):
+    location = Location.objects.all()
+
+
+    ctx = {
+        'location':location
+    }
+
+
+    return render(request,'index.html',ctx)
+
+def loc(request,id):
+    location = Location.objects.get(id=id)
+
+    ctx = {
+        'location':location
+    }
+
+    return render(request,'loc.html',ctx)
