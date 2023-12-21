@@ -9,48 +9,43 @@
 </head>
 <body>
     <div id="map" style="height: 400px; width: 100%;"></div>
-    <p id="selectedLocation"></p>
-    <a href="{% url 'loc' location.id%}">{{location.latitude}}, {{location.longitude}}</a><br>
+    <div id="locationInfo"></div>
+
     <script>
-    ymaps.ready(init);
+        ymaps.ready(init);
 
-function init() {
-    var map = new ymaps.Map("map", {
-        center: [{{location.latitude }}, {{ location.longitude }}],
-        zoom: 6
-    });
+        function init() {
+            var map = new ymaps.Map("map", {
+                center: [{{location.latitude|slice:4}}, {{location.longitude|slice:4}}],
+                zoom: 18
+            });
 
-    var iconCoordinates = [
-        { latitude: {{location.latitude|slice:4}}, longitude: {{location.longitude|slice:4}} },
+            var locationInfoElement = document.getElementById('locationInfo');
 
-        // ... yana koordinatalar
-    ];
+            var iconCoordinates = [
+                { latitude: {{location.latitude}}, longitude: {{location.longitude}} },
+                // ... yana koordinatalar
+            ];
 
-    var placemarks = [];
+             for (var i = 0; i < iconCoordinates.length; i++) {
+                var coordinates = [iconCoordinates[i].latitude, iconCoordinates[i].longitude];
 
-    for (var i = 0; i < iconCoordinates.length; i++) {
-        var coordinates = [iconCoordinates[i].latitude, iconCoordinates[i].longitude];
+                var placemark = new ymaps.Placemark(
+                    coordinates,
+                    {
+                        balloonContent: 'Lost item there' // Description content here
+                    },
+                    {
+                        iconLayout: 'default#image',
+                        iconImageHref: "{% static 'assi.JPG'%}",
+                        iconImageSize: [32, 32],
+                        iconImageOffset: [-16, -16]
+                    }
+                );
 
-        var placemark = new ymaps.Placemark(
-            coordinates,
-            {},
-            {
-                iconLayout: 'default#image',
-                iconImageHref: "{% static 'images.png' %}", // O'zgarish mumkin, shunday qilib server tomonida belgilangan ikonga yo'naltirish
-                iconImageSize: [32, 32],
-                iconImageOffset: [-16, -16]
+                map.geoObjects.add(placemark);
             }
-        );
-
-        placemarks.push(placemark);
-        map.geoObjects.add(placemark);
-    }
-
-    map.setBounds(map.geoObjects.getBounds(), {
-        checkZoomRange: true
-    });
-}
-
+        }
     </script>
 </body>
 </html>

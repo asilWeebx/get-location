@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Map with Search</title>
+    <script src="https://api-maps.yandex.ru/2.1/?apikey=YOUR_YANDEX_MAPS_API_KEY&lang=en_US" type="text/javascript"></script>
+</head>
+<body>
+    <div id="map" style="height: 400px; width: 100%;"></div>
+    <input type="text" id="searchInput" placeholder="Search for a location">
+    <button onclick="searchLocation()">Search</button>
+
+    <script>
+        ymaps.ready(init);
+
+        function init() {
+            var map = new ymaps.Map("map", {
+                center: [41.3775, 64.5853],
+                zoom: 6
+            });
+
+            // Function to add a location to the map
+            function addLocationToMap(location) {
+                var placemark = new ymaps.Placemark(
+                    [location.latitude, location.longitude],
+                    { hintContent: location.name },
+                    { preset: 'islands#blueDotIcon' }
+                );
+
+                map.geoObjects.add(placemark);
+            }
+
+            // Add existing locations to the map
+            var locations = [
+                { name: 'Location 1', latitude: 41.3775, longitude: 64.5853 },
+                { name: 'Location 2', latitude: 41.3, longitude: 64.6 },
+                // ... add more locations as needed
+            ];
+
+            locations.forEach(addLocationToMap);
+        }
+
+        function searchLocation() {
+            var searchQuery = document.getElementById('searchInput').value;
+
+            // Send the search query to the backend and update the map with the results
+            fetch('http://127.0.0.1:8000/api/api/locations/?search=' + searchQuery)
+                .then(response => response.json())
+                .then(data => {
+                    // Clear existing map markers
+                    map.geoObjects.removeAll();
+
+                    // Add the search results to the map
+                    data.forEach(addLocationToMap);
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>

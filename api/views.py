@@ -1,14 +1,22 @@
 from django.shortcuts import render
-from rest_framework import generics
+from rest_framework import generics, viewsets
+from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Location
 from .serializers import LocationSerializer
 
-class LocationListCreateView(generics.ListCreateAPIView):
+
+class LocationViewSet(viewsets.ModelViewSet):
     queryset = Location.objects.all()
     serializer_class = LocationSerializer
 
+
+class LocationListCreateView(generics.ListCreateAPIView):
+    queryset = Location.objects.all()
+    serializer_class = LocationSerializer
+    filter_backends = [SearchFilter, ]
+    search_fields = ['country', 'city','street']
     def post(self, request, *args, **kwargs):
         # Extract latitude and longitude from the request data
         city = request.data.get('city')
